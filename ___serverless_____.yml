@@ -1,0 +1,70 @@
+service: serverless-poc-nest
+
+frameworkVersion: '2'
+
+variablesResolutionMode: 20210219
+configValidationMode: error
+useDotenv: true
+
+package:
+  exclude:
+    - .git/**
+    - src/**
+    - test/**
+    - e2e/**
+    - nodemon.json
+    - README.md
+    - '!src/resources/files/index.html'
+  individually: true
+
+plugins:
+  # - serverless-bundle
+  - serverless-offline
+  # - serverless-plugin-warmup
+
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs14.x
+  timeout: 12
+  region: us-east-1
+
+  environment:
+    NODE_ENV: development
+    SLS_DEBUG: true
+
+  httpApi:
+    id: ${cf:tummi-infra-resources-${opt:stage, "dev"}.HttpApiId}
+
+custom:
+  serverless-offline:
+    host: 0.0.0.0
+    ignoreJWTSignature: true
+  tableName: tummi-data-table-${opt:stage, 'dev'}
+  region: us-east-1
+
+  # warmup:
+  #   officeHoursWarmer:
+  #     enabled: true
+  #     events:
+  #       - schedule: cron(0/10 8-18 ? * MON-FRI *)
+  #     concurrency: 1
+
+  bundle:
+    disableForkTsChecker: true
+    packager: yarn
+    linting: true
+    ignorePackages:
+      - pg-native
+
+functions:
+  getClinic:
+    handler: dist/main.handler
+    memorySize: 128
+    events:
+      - httpApi:
+          path: /backoffice/v1/clinic
+          method: get
+    # warmup:
+    #   officeHoursWarmer:
+    #     enabled: true

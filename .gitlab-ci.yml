@@ -1,0 +1,53 @@
+variables:
+  #GLOBALS
+  PROGRAMMING_LANGUAGE: "NODE" #JAVA && NODE && REACT
+  NEEDS_ORACLE: "false" #true && false
+  AWS_DEPLOY: "false" #true && false
+  AZ_DEPLOY: "true" #true && false
+  CI: "true" # CI fails if any warn on the build process appears
+  AUDIT_FIX: "true" # Run audit fix after build
+  SERVICE: "order-api" #ex: produto-api
+
+  #ONLY FOR FRONTEND SERVICE
+  #GITLAB CI/CD VARIABLES NEEDS TO CONFIGURE FOR PROJECT
+  #$AWS_BUCKET (DONT FORGET TO CONFIGURE ENVIRONMENT FOR VARIABLE)
+  #ANY OTHER VARIABLE NEEDED TO BUILD PROJECT (EX: NODE_ENV, PUBLIC_URL, REACT_APP_API)
+
+stages:
+  - test
+  - build
+  - docker
+  - deploy
+  - refresh
+  - health_check
+  - rollback
+  - actions
+
+include:
+  - project: 'beirario/devops/ci-templates'
+    ref: master
+    file: 
+      - 'templates/Compliance.yml'
+      - 'templates/Docker.yml'
+      - 'templates/HelmJobs.yml'
+      - 'templates/aws/Cloudfront.yml'
+      - 'templates/aws/PutToS3.yml'
+      - 'templates/BuildJobs.yml'
+  
+  ####################################################
+  # Uncomment if your project is for backend service #
+  ####################################################
+  - project: 'beirario/devops/ci-templates'
+    ref: master
+    file: ["pipelines/backend/aws.yml", "pipelines/backend/azure.yml", "pipelines/backend/az.yml"]
+
+  #####################################################
+  # Uncomment if your project is for frontend service #
+  #####################################################
+  # - project: beirario/devops/ci-templates
+  #   ref: master
+  #   file: ["pipelines/frontend/aws.yml", "pipelines/frontend/azure.yml", "pipelines/frontend/az.yml"]
+
+default:
+  tags:
+    - kubernetes

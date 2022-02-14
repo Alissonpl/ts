@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: serverless-poc-nest
+    volumes:
+      - .:/app
+    ports:
+      - '3000:3000'
+      - 9229:9229
+    networks:
+      - thummi-cloud-network
+  db:
+    image: postgres
+    container_name: postgres-order-cloud-db
+    tty: true
+    environment:
+      - POSTGRES_DB=order-cloud
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - thummi-cloud-pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - thummi-cloud-network
+
+networks:
+  thummi-cloud-network:
+    driver: bridge
+    external: true
+
+volumes:
+  thummi-cloud-pgdata:
+    external: true
